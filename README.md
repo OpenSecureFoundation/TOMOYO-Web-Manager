@@ -21,9 +21,11 @@ générer policy 
 # Partie ATTACK 
 
 Scénario :
+
 app web vulnérable (lecture fichiers) 
 
 L’équipe tente :
+
 lire /etc/shadow 
 
 exécuter /bin/bash 
@@ -31,6 +33,7 @@ exécuter /bin/bash 
 
 # Partie DEFENSE
 Avec TOMOYO :
+
 autoriser uniquement :
 /var/www/app 
 
