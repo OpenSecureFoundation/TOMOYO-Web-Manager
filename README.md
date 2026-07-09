@@ -2,6 +2,7 @@
 Conception, développement et déploiement d’une Plateforme web de gestion et visualisation des politiques TOMOYO
 
 
+
 # Fonctionnalités
 1. Visualisation des policies
  
@@ -18,6 +19,7 @@ générer policy 
 4. Édition web des règles (avec validation obligatoire)
 
 
+
 # Partie ATTACK 
 
 Scénario :
@@ -29,6 +31,7 @@ L’équipe tente :
 lire /etc/shadow 
 
 exécuter /bin/bash 
+
 
 
 # Partie DEFENSE
