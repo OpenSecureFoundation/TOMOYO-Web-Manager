@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TOMOYO Web Manager — Connexion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="login-shell">
+  <div class="login-card">
+    <div class="login-mark">TOMOYO LSM · MANDATORY ACCESS CONTROL</div>
+    <div class="login-title">TOMOYO Web Manager</div>
+    <div class="login-sub">Connectez-vous pour gerer les politiques de confinement.</div>
+
+    <div class="login-error" id="loginError"></div>
+
+    <form id="loginForm">
+      <div class="login-field">
+        <label class="form-label" for="login">Identifiant</label>
+        <input class="form-input" id="login" name="login" type="text" autocomplete="username" required>
+      </div>
+      <div class="login-field">
+        <label class="form-label" for="password">Mot de passe</label>
+        <input class="form-input" id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="btn btn-primary login-submit" type="submit" id="loginSubmit">Se connecter</button>
+    </form>
+
+    <div class="login-footer">
+      [kernel] domain=&lt;kernel&gt; profile=disabled&hellip;<br>
+      en attente d'authentification
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script>
+(function () {
+  const form = document.getElementById('loginForm');
+  const errBox = document.getElementById('loginError');
+  const submitBtn = document.getElementById('loginSubmit');
+
+  function showError(msg) {
+    errBox.textContent = msg;
+    errBox.classList.add('show');
+  }
+  function hideError() {
+    errBox.classList.remove('show');
+  }
+
+  // If already authenticated, skip straight to the dashboard.
+  TWM.api('/api/session').then((s) => {
+    if (s && s.authenticated) window.location.href = 'dashboard.html';
+  }).catch(() => {});
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    hideError();
+
+    const login = document.getElementById('login').value.trim();
+    const password = document.getElementById('password').value;
+
+    if (!login || !password) {
+      showError('Champs mal remplis.');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Connexion...';
+    try {
+      await TWM.api('/api/login', { method: 'POST', body: { login, password } });
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      showError(err.message || 'Identifiants incorrects.');
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Se connecter';
+    }
+  });
+})();
+</script>
+</body>
+</html>

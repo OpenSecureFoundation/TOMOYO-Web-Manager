@@ -1,0 +1,59 @@
+# =============================================================================
+# TOMOYO Web Manager - fichier de configuration
+#
+# Copiez ce fichier avant de le modifier :
+#   sudo cp tomoyo-web-manager.conf.example /etc/tomoyo-web-manager/tomoyo-web-manager.conf
+#
+# Puis generez impérativement un nouveau mot de passe administrateur
+# (voir scripts/set_admin_password.sh) - ne gardez jamais la valeur
+# d'exemple ci-dessous en production.
+# =============================================================================
+
+# Port d'ecoute HTTP interne. En production, ce port n'est exposé qu'en
+# local (127.0.0.1) ; un reverse proxy (nginx) assure le HTTPS public.
+port=8088
+bind_addr=127.0.0.1
+
+# Racine des fichiers statiques du frontend (HTML/CSS/JS).
+static_root=/opt/tomoyo-web-manager/frontend
+
+# Repertoire de donnees applicatives : sauvegardes de policy, historique
+# des modifications, et (en mode demo) l'arborescence mock_tomoyo/.
+data_dir=/var/lib/tomoyo-web-manager
+
+# Racine de l'interface noyau TOMOYO (securityfs). Si ce chemin est
+# absent ou illisible au demarrage, le serveur bascule automatiquement
+# en MODE DEMO (mock) afin de rester utilisable pour une demonstration.
+tomoyo_root=/sys/kernel/security/tomoyo
+
+# --- Authentification ---
+# Identifiant administrateur unique (mono-utilisateur, conforme au
+# cahier d'analyse : un seul acteur "Administrateur systeme").
+admin_user=admin
+
+# SHA-256 hexadecimal du mot de passe. Valeur ci-dessous = "changeme".
+# CHANGEZ-LA (voir scripts/set_admin_password.sh) :
+#   echo -n 'VotreMotDePasse' | sha256sum
+admin_pass_sha256=057ba03d6c44104863dc7361fe4578965d1887360f90a0895882e58a6248fc86
+
+# Duree de vie d'une session (secondes).
+session_ttl_seconds=3600
+
+# --- Correspondance profils TOMOYO <-> modes ---
+# Auto-detectee au demarrage depuis /sys/kernel/security/tomoyo/profile
+# (recherche des mots "learning"/"enforcing"). Ces valeurs ne servent
+# que de repli si l'auto-detection echoue.
+profile_learning=1
+profile_enforcing=3
+
+# Mettre a 1 uniquement si l'application est servie derriere un reverse
+# proxy HTTPS (nginx + certificat) : ajoute l'attribut Secure au cookie
+# de session.
+cookie_secure=0
+
+# --- Liste blanche des executables autorises pour la capture
+# d'apprentissage automatique (module "Generation automatique" du
+# cahier d'analyse). Chaque ligne autorise un chemin absolu exact.
+# Sans entree ici, la generation automatique refusera tout chemin.
+# allow_exec=/usr/bin/monapplication
+# allow_exec=/opt/monapp/bin/monapp

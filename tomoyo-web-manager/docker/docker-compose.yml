@@ -1,0 +1,48 @@
+# =============================================================================
+# TOMOYO Web Manager — docker-compose
+#
+# A lancer depuis la racine du depot :
+#   docker compose -f docker/docker-compose.yml up -d --build
+#
+# ATTENTION (a lire) :
+# Pour piloter reellement le module noyau TOMOYO de la machine hote, ce
+# service tourne en mode "privileged" et monte le sous-repertoire
+# securityfs de l'hote. C'est necessaire uniquement parce que
+# l'application administre un mecanisme noyau (LSM) ; ce n'est pas
+# represantatif d'un conteneur "web" ordinaire, et cela reduit
+# l'isolation habituelle des conteneurs. Si vous n'avez pas besoin de
+# Docker specifiquement, le deploiement natif via systemd
+# (docs/DEPLOIEMENT.md) est recommande pour un serveur de production
+# car il evite ce compromis.
+#
+# Sans le bind-mount ci-dessous (ou sur une machine ou TOMOYO n'est pas
+# active), l'application detecte automatiquement l'absence de
+# securityfs et bascule en MODE DEMO (mock), pleinement fonctionnel
+# pour une demonstration mais sans effet sur un vrai noyau.
+# =============================================================================
+
+services:
+  tomoyo-web-manager:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: tomoyo-web-manager:latest
+    container_name: tomoyo-web-manager
+    restart: unless-stopped
+
+    # Required only for real (non-mock) kernel management:
+    privileged: true
+
+    volumes:
+      - tomoyo-web-data:/app/data
+      # Uncomment on a host where TOMOYO is enabled in the kernel to
+      # manage the REAL policy instead of the local demo/mock tree:
+      # - /sys/kernel/security/tomoyo:/sys/kernel/security/tomoyo
+
+    # Bind only to localhost; a host-level nginx reverse proxy (see
+    # docs/DEPLOIEMENT.md) terminates HTTPS and forwards here.
+    ports:
+      - "127.0.0.1:8088:8088"
+
+volumes:
+  tomoyo-web-data:
