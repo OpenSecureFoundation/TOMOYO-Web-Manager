@@ -1,0 +1,47 @@
+[Unit]
+Description=TOMOYO Web Manager - plateforme web de gestion des politiques TOMOYO Linux
+Documentation=https://github.com/
+After=network.target local-fs.target
+# Starts after TOMOYO's securityfs is available when present on the host;
+# harmless (and the app falls back to demo/mock mode) if the unit/mount
+# below does not exist on this system.
+Wants=sys-kernel-security.mount
+
+[Service]
+Type=simple
+
+# TOMOYO's default policy-write control model treats uid 0 as an
+# implicit trusted manager; running as root is the simplest reliable
+# setup for this security-control-plane tool (comparable in spirit to
+# services like ufw or fail2ban). To run as a non-root user instead,
+# register this binary's absolute path in
+# /sys/kernel/security/tomoyo/manager and enable "manage_by_non_root"
+# in the profile, then change User=/Group= below accordingly. See
+# docs/DEPLOIEMENT.md, section "Execution en utilisateur dedie".
+User=root
+Group=root
+
+WorkingDirectory=/opt/tomoyo-web-manager
+ExecStart=/opt/tomoyo-web-manager/tomoyo-web-manager /etc/tomoyo-web-manager/tomoyo-web-manager.conf
+Restart=on-failure
+RestartSec=3
+
+# Baseline hardening that does NOT interfere with writing to
+# /sys/kernel/security/tomoyo (deliberately no ProtectKernelTunables=,
+# no ProtectKernelModules=, no ProtectSystem=strict, which could mount
+# over or block the securityfs paths this app needs to write to).
+NoNewPrivileges=false
+PrivateTmp=true
+ProtectHome=true
+ProtectControlGroups=true
+
+# Application data (policy backups, mode-change history, mock tree
+# when TOMOYO isn't active on this host).
+ReadWritePaths=/var/lib/tomoyo-web-manager
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=tomoyo-web-manager
+
+[Install]
+WantedBy=multi-user.target

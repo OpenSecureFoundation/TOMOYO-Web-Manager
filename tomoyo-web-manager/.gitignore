@@ -1,0 +1,11 @@
+# Build artifacts
+backend/build/
+backend/tomoyo-web-manager
+
+# Local runtime data (mock tree, backups, history, sessions)
+backend/data/
+data/
+
+# Editor/OS cruft
+.DS_Store
+*.swp
